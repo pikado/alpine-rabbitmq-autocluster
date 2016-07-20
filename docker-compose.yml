@@ -1,0 +1,48 @@
+version: '2'
+services:
+ etcd:
+  build: .
+  image: pikado/alpine-etcd
+  container_name: alpine_etcd
+  hostname: alpine-etcd
+  ports:
+  - "2379:2379"
+  restart: always
+
+ rmq1:
+  build: .
+  image: pikado/alpine-rabbitmq-autocluster
+  container_name: alpine_rmq1
+  hostname: alpine-rmq1
+  environment:
+  - AUTOCLUSTER_TYPE=etcd
+  - CLUSTER_NAME=rmqcluster
+  - AUTOCLUSTER_LOG_LEVEL=debug
+  - ETCD_HOST=alpine-etcd
+  - ETCD_PORT=2379
+  ports:
+  - "5672:5672"
+  - "15672:15672"
+  links:
+  - etcd:alpine-etcd
+  restart: always
+
+ rmq2:
+  build: .
+  image: pikado/alpine-rabbitmq-autocluster
+  container_name: alpine_rmq2
+  hostname: alpine-rmq2
+  environment:
+  - RMQ_USER=rmquser
+  - RMQ_PASS=rmqpass
+  - AUTOCLUSTER_TYPE=etcd
+  - CLUSTER_NAME=rmqcluster
+  - AUTOCLUSTER_LOG_LEVEL=debug
+  - ETCD_HOST=alpine-etcd
+  - ETCD_PORT=2379
+  ports:
+  - "5682:5672"
+  - "15682:15672"
+  links:
+  - etcd:alpine-etcd
+  restart: always
